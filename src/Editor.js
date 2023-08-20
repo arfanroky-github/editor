@@ -16,20 +16,25 @@ import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { TRANSFORMERS } from "@lexical/markdown";
-
 import ListMaxIndentLevelPlugin from "./plugins/ListMaxIndentLevelPlugin";
 import CodeHighlightPlugin from "./plugins/CodeHighlightPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
+// import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { useCallback, useEffect, useState } from "react";
+import { $getRoot, $getSelection } from "lexical";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 
 function Placeholder() {
-  return <div className="editor-placeholder">Enter some rich text...</div>;
+  return <div className="editor-placeholder">Write Message...</div>;
 }
+
 
 const editorConfig = {
   // The editor theme
   theme: ExampleTheme,
   // Handling of errors during update
   onError(error) {
+    console.log(error)
     throw error;
   },
   // Any custom nodes go here
@@ -44,11 +49,23 @@ const editorConfig = {
     TableCellNode,
     TableRowNode,
     AutoLinkNode,
-    LinkNode
-  ]
+    LinkNode,
+  ],
 };
 
-export default function Editor() {
+function OnChangePlugin({ onChange }) {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    return editor.registerUpdateListener((editorState) => {
+      onChange(editorState);
+    });
+  }, [editor, onChange]);
+}
+
+
+export default function Editor({onChange}) {
+
+
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="editor-container">
@@ -59,6 +76,8 @@ export default function Editor() {
             placeholder={<Placeholder />}
             ErrorBoundary={LexicalErrorBoundary}
           />
+
+          <OnChangePlugin onChange={onChange} />
           <HistoryPlugin />
           <TreeViewPlugin />
           <AutoFocusPlugin />
